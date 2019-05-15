@@ -12,3 +12,5 @@ gradle.properties
 build
 captures/
 .gradletasknamecache
+
+publishing.gradle

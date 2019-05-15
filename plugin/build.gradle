@@ -27,6 +27,10 @@ group = metadata.groupId
 jar.baseName = ARTIFACT_ID
 version = metadata.version
 
+if(project.hasProperty('pluginVersion')) {
+    version project.property('pluginVersion')
+}
+
 dependencies {
     compile gradleApi()
 //    compile localGroovy()
@@ -49,3 +53,7 @@ dependencies {
 //    repository = metadata.repository
 //    licences = metadata.licences
 //}
+
+if(file('../publishing.gradle').exists()) {
+    apply from: file('../publishing.gradle')
+}

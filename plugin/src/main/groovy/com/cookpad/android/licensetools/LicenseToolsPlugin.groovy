@@ -133,14 +133,15 @@ class LicenseToolsPlugin implements Plugin<Project> {
             Dependency pomDependency = project.dependencies.create("$dependencyDesc@pom")
             Configuration pomConfiguration = project.configurations.detachedConfiguration(pomDependency)
 
-            pomConfiguration.resolve().each {
-                project.logger.info("POM: ${it}")
-            }
-
             File pStream
             try {
-                pStream = pomConfiguration.resolve().asList().first()
-            } catch (Exception e) {
+                def resolved = pomConfiguration.resolve()
+                resolved.each {
+                    project.logger.info("POM: ${it}")
+                }
+
+                pStream = resolved.asList().first()
+            } catch (Exception ignored) {
                 project.logger.warn("Unable to retrieve license for $dependencyDesc")
                 return
             }

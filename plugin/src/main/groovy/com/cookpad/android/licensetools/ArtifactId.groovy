@@ -26,9 +26,7 @@ public class ArtifactId implements Comparable<ArtifactId> {
     }
 
     public boolean matches(ArtifactId artifactId) {
-        return matchesWithWildcard(group, artifactId.group)
-                && matchesWithWildcard(name, artifactId.name)
-                && matchesWithWildcard(version, artifactId.version);
+        return matchesWithWildcard(group, artifactId.group)  && matchesWithWildcard(name, artifactId.name)  && matchesWithWildcard(version, artifactId.version);
     }
 
     private boolean matchesWithWildcard(String a, String b) {

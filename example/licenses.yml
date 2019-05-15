@@ -1,3 +1,7 @@
+- artifact: com.google.code.gson:gson:+
+  name: Gson
+  copyrightHolder: Google Inc.
+  license: apache2
 - artifact: com.android.support:+:+
   name: Android Support Libraries
   copyrightHolder: The Android Open Source Project
@@ -25,10 +29,6 @@
   copyrightHolder: Google Inc.
   license: bsd_2_clauses
   url: "https://github.com/bumptech/glide"
-- artifact: com.google.code.gson:gson:+
-  name: Gson
-  copyrightHolder: Google Inc.
-  license: apache2
 - artifact: io.reactivex:rxandroid:1.1.0
   name: RxAndroid
   copyrightHolder: The RxAndroid authors

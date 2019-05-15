@@ -1,13 +1,7 @@
 // This project's rootProject is ":buildSrc", so it should have a copy of build-script settings of the "/build.gradle"
-buildscript {
-    repositories {
-        jcenter()
-    }
-    dependencies {
-        classpath 'com.novoda:bintray-release:0.4.0' // https://github.com/novoda/bintray-release
-    }
-}
+
 repositories {
+    mavenLocal()
     jcenter()
 }
 
@@ -16,12 +10,11 @@ apply from: file('../metadata.gradle')
 ext {
     versionFile = file("../VERSION")
     versionName = versionFile.readLines()[0].trim()
-    metadata.version = versionName
+    metadata.version = ext.versionName
 }
 
 apply plugin: 'groovy'
-apply plugin: 'maven' // to add "plugin:install" to install it locally
-apply plugin: 'com.novoda.bintray-release' // to upload it to bintray
+apply plugin: 'maven-publish' // to add "plugin:install" to install it locally
 
 targetCompatibility = JavaVersion.VERSION_1_8
 sourceCompatibility = JavaVersion.VERSION_1_8
@@ -36,7 +29,8 @@ version = metadata.version
 
 dependencies {
     compile gradleApi()
-    compile localGroovy()
+//    compile localGroovy()
+    testCompile gradleTestKit()
 
     compile 'org.yaml:snakeyaml:1.17'
     compile 'org.apache.commons:commons-lang3:3.4'
@@ -44,14 +38,14 @@ dependencies {
 }
 
 
-publish {
-    artifactId = ARTIFACT_ID
-    desc = 'A Gradle plugin to handle android application license notations'
-
-    userOrg = metadata.organization
-    groupId = metadata.groupId
-    publishVersion = metadata.version
-    website = metadata.website
-    repository = metadata.repository
-    licences = metadata.licences
-}
+//publish {
+//    artifactId = ARTIFACT_ID
+//    desc = 'A Gradle plugin to handle android application license notations'
+//
+//    userOrg = metadata.organization
+//    groupId = metadata.groupId
+//    publishVersion = metadata.version
+//    website = metadata.website
+//    repository = metadata.repository
+//    licences = metadata.licences
+//}

@@ -196,13 +196,9 @@ class LicenseToolsPlugin implements Plugin<Project> {
 
         assertEmptyLibraries(noLicenseLibraries)
 
-        def assetsDir = project.file("src/main/assets")
-        if (!assetsDir.exists()) {
-            assetsDir.mkdirs()
-        }
-
-        project.logger.info("render ${assetsDir}/${ext.outputHtml}")
-        project.file("${assetsDir}/${ext.outputHtml}").write(Templates.wrapWithLayout(content))
+        project.mkdir(ext.outputHtml.getParentFile())
+        project.logger.info("render ${ext.outputHtml}")
+        project.file(ext.outputHtml).write(Templates.wrapWithLayout(content))
     }
 
     static String generateLibraryInfoText(LibraryInfo libraryInfo) {
@@ -251,11 +247,6 @@ class LicenseToolsPlugin implements Plugin<Project> {
 
         assertEmptyLibraries(noLicenseLibraries)
 
-        def assetsDir = project.file("src/main/assets")
-        if (!assetsDir.exists()) {
-            assetsDir.mkdirs()
-        }
-
         json {
             libraries librariesArray.collect {
                 l ->
@@ -280,8 +271,9 @@ class LicenseToolsPlugin implements Plugin<Project> {
             }
         }
 
-        project.logger.info("render ${assetsDir}/${ext.outputJson}")
-        project.file("${assetsDir}/${ext.outputJson}").write(json.toString())
+        project.mkdir(ext.outputJson.getParentFile())
+        project.logger.info("render ${ext.outputJson}")
+        project.file(ext.outputJson).write(json.toString())
     }
 
     static void assertEmptyLibraries(ArrayList<LibraryInfo> noLicenseLibraries) {

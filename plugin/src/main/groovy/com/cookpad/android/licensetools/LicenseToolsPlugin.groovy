@@ -56,7 +56,11 @@ class LicenseToolsPlugin implements Plugin<Project> {
                     project.logger.warn("- artifact: ${libraryInfo.artifactId}\n  license: ${libraryInfo.license}")
                 }
             }
-            throw new GradleException("checkLicenses: missing libraries in ${ext.licensesYaml}")
+            if(ext.throwException) {
+                throw new GradleException("checkLicenses: missing libraries in ${ext.licensesYaml}")
+            } else {
+                project.logger.error("checkLicenses: missing libraries in ${ext.licensesYaml}")
+            }
         }
 
         checkLicenses.configure {
@@ -80,15 +84,15 @@ class LicenseToolsPlugin implements Plugin<Project> {
             initialize(project)
             generateLicensePage(project)
         }
-        generateLicensePage.dependsOn('checkLicenses')
+        generateLicensePage.dependsOn(checkLicenses)
 
         def generateLicenseJson = project.task('generateLicenseJson').doLast {
             initialize(project)
             generateLicenseJson(project)
         }
-        generateLicenseJson.dependsOn('checkLicenses')
+        generateLicenseJson.dependsOn(checkLicenses)
 
-        project.tasks.findByName("check").dependsOn('checkLicenses')
+        project.tasks.findByName("check").dependsOn(checkLicenses)
     }
 
     void initialize(Project project) {

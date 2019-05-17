@@ -1,8 +1,9 @@
 package com.cookpad.android.licensetools
 
 public class LicenseToolsExtension {
-
     public static String NAME = "licenseTools"
+
+    public boolean throwException = true
 
     public File licensesYaml = new File("licenses.yml")
 

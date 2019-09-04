@@ -29,12 +29,34 @@ class LicenseToolsPlugin implements Plugin<Project> {
             def notInDependencies = librariesYaml.notListedIn(dependencyLicenses)
             def licensesNotMatched = dependencyLicenses.licensesNotMatched(librariesYaml)
 
+            LicenseToolsExtension ext = project.extensions.findByType(LicenseToolsExtension)
+
+            if(!ext.disAllowed.empty) {
+                for(String lic : ext.disAllowed) {
+                    boolean found = false
+                    def libCheck = { libraryInfo ->
+                        if(libraryInfo.license && libraryInfo.license.matches(lic)) {
+                            found = true
+                        }
+                    }
+
+                    dependencyLicenses.each libCheck
+                    librariesYaml.each libCheck
+
+                    if(found) {
+                        if(ext.throwException) {
+                            throw new GradleException("checkLicenses: Licenses found which are not allowed: '${lic}'!")
+                        } else {
+                            project.logger.error("checkLicenses: Licenses found which are not allowed: '${lic}'!")
+                        }
+                    }
+                }
+            }
+
             if (notDocumented.empty && notInDependencies.empty && licensesNotMatched.empty) {
                 project.logger.info("checkLicenses: ok")
                 return
             }
-
-            LicenseToolsExtension ext = project.extensions.findByType(LicenseToolsExtension)
 
             if (notDocumented.size() > 0) {
                 project.logger.warn("# Libraries not listed in ${ext.licensesYaml}:")
@@ -56,6 +78,7 @@ class LicenseToolsPlugin implements Plugin<Project> {
                     project.logger.warn("- artifact: ${libraryInfo.artifactId}\n  license: ${libraryInfo.license}")
                 }
             }
+
             if(ext.throwException) {
                 throw new GradleException("checkLicenses: missing libraries in ${ext.licensesYaml}")
             } else {
@@ -208,7 +231,7 @@ class LicenseToolsPlugin implements Plugin<Project> {
     static String generateLibraryInfoText(LibraryInfo libraryInfo) {
         def text = new StringBuffer()
         text.append("- artifact: ${libraryInfo.artifactId.withWildcardVersion()}\n")
-        text.append("  name: ${libraryInfo.name ?: "#NAME#"}\n")
+        text.append("  name: ${libraryInfo.escapedName ?: "#NAME#"}\n")
         text.append("  copyrightHolder: ${libraryInfo.copyrightHolder ?: "#COPYRIGHT_HOLDER#"}\n")
         text.append("  license: ${libraryInfo.license ?: "#LICENSE#"}\n")
         if (libraryInfo.licenseUrl) {

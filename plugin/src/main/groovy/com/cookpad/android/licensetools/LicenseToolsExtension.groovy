@@ -5,6 +5,8 @@ public class LicenseToolsExtension {
 
     public boolean throwException = true
 
+    public List<String> disAllowed = []
+
     public File licensesYaml = new File("licenses.yml")
 
     public File outputHtml = new File("licenses.html")

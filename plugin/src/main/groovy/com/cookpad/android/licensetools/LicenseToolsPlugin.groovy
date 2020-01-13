@@ -121,7 +121,7 @@ class LicenseToolsPlugin implements Plugin<Project> {
     void initialize(Project project) {
         LicenseToolsExtension ext = project.extensions.findByType(LicenseToolsExtension)
         loadLibrariesYaml(project.file(ext.licensesYaml))
-        loadDependencyLicenses(project, ext.ignoredGroups, ext.ignoredProjects)
+        loadDependencyLicenses(project, ext.ignoredGroups, ext.ignoredProjects, ext.recursive)
     }
 
     void loadLibrariesYaml(File licensesYaml) {
@@ -136,8 +136,8 @@ class LicenseToolsPlugin implements Plugin<Project> {
         }
     }
 
-    void loadDependencyLicenses(Project project, Set<String> ignoredGroups, Set<String> ignoredProjects) {
-        resolveProjectDependencies(project, ignoredProjects).each { d ->
+    void loadDependencyLicenses(Project project, Set<String> ignoredGroups, Set<String> ignoredProjects, boolean recursive) {
+        resolveProjectDependencies(project, ignoredProjects, recursive).each { d ->
             if (d.moduleVersion.id.version == "unspecified") {
                 return
             }
@@ -323,21 +323,19 @@ class LicenseToolsPlugin implements Plugin<Project> {
     }
 
     // originated from https://github.com/hierynomus/license-gradle-plugin DependencyResolver.groovy
-    Set<ResolvedArtifact> resolveProjectDependencies(Project project, Set<String> ignoredProjects) {
-        def subprojects = project.rootProject.subprojects.findAll { Project p -> !ignoredProjects.contains(p.name) }
-                .groupBy { Project p -> "$p.group:$p.name:$p.version" }
-
+    Set<ResolvedArtifact> resolveProjectDependencies(Project project, Set<String> ignoredProjects, boolean recursive) {
+        def subProjects = [:]
         List<ResolvedArtifact> runtimeDependencies = []
 
-        project.rootProject.subprojects.findAll { Project p -> !ignoredProjects.contains(p.name) }.each { Project subproject ->
-            runtimeDependencies << subproject.configurations.all.findAll { Configuration c ->
-                // compile|implementation|api, release(Compile|Implementation|Api), releaseProduction(Compile|Implementation|Api), and so on.
-                c.name.matches(/^(?!releaseUnitTest)(?:release\w*)?([cC]ompile|[cC]ompileOnly|[iI]mplementation|[aA]pi)$/)
-            }.collect {
-                Configuration copyConfiguration = it.copyRecursive()
-                copyConfiguration.setCanBeResolved(true)
-                copyConfiguration.resolvedConfiguration.lenientConfiguration.artifacts
-            }.flatten() as List<ResolvedArtifact>
+        if(recursive) {
+            subProjects = project.rootProject.subprojects.findAll { Project p -> !ignoredProjects.contains(p.name) }
+                    .groupBy { Project p -> "$p.group:$p.name:$p.version" }
+
+            project.rootProject.subprojects.findAll { Project p -> !ignoredProjects.contains(p.name) }.each { Project subproject ->
+                runtimeDependencies.addAll(getProjectDependencies(subproject))
+            }
+        } else {
+            runtimeDependencies.addAll(getProjectDependencies(project))
         }
 
         runtimeDependencies = runtimeDependencies.flatten()
@@ -350,12 +348,23 @@ class LicenseToolsPlugin implements Plugin<Project> {
             if (!seen.contains(dependencyDesc)) {
                 dependenciesToHandle.add(d)
 
-                Project subproject = subprojects[dependencyDesc]?.first()
-                if (subproject) {
-                    dependenciesToHandle.addAll(resolveProjectDependencies(subproject))
+                Project subProject = subProjects[dependencyDesc]?.first()
+                if (subProject) {
+                    dependenciesToHandle.addAll(resolveProjectDependencies(subProject, ignoredProjects, recursive))
                 }
             }
         }
         return dependenciesToHandle
+    }
+
+    static List<ResolvedArtifact> getProjectDependencies(Project project) {
+        project.configurations.all.findAll { Configuration c ->
+            // compile|implementation|api, release(Compile|Implementation|Api), releaseProduction(Compile|Implementation|Api), and so on.
+            c.name.matches(/^(?!releaseUnitTest)(?:release\w*)?([cC]ompile|[cC]ompileOnly|[iI]mplementation|[aA]pi)$/)
+        }.collect {
+            Configuration copyConfiguration = it.copyRecursive()
+            copyConfiguration.setCanBeResolved(true)
+            copyConfiguration.resolvedConfiguration.lenientConfiguration.artifacts
+        }.flatten() as List<ResolvedArtifact>
     }
 }

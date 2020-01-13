@@ -1,3 +1,9 @@
+Copyright (c) 2020 Syncrontech
+
+Forked from https://github.com/cookpad/license-tools-plugin in 2019.
+
+---
+
 Copyright (c) 2016 Cookpad Inc.
 
 ---

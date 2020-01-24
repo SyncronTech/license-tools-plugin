@@ -1,5 +1,5 @@
 apply plugin: 'java'
-apply plugin: 'com.cookpad.android.licensetools'
+apply plugin: 'com.syncrontech.licensetools'
 
 licenseTools {
 //    ignoredProjects = [

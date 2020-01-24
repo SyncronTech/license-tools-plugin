@@ -7,7 +7,9 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
+import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.artifacts.ResolvedArtifact
+import org.gradle.language.base.plugins.LifecycleBasePlugin
 import org.xml.sax.helpers.DefaultHandler
 import org.yaml.snakeyaml.Yaml
 
@@ -115,7 +117,7 @@ class LicenseToolsPlugin implements Plugin<Project> {
         }
         generateLicenseJson.dependsOn(checkLicenses)
 
-        project.tasks.findByName("check").dependsOn(checkLicenses)
+        project.tasks.findByName(LifecycleBasePlugin.CHECK_TASK_NAME)?.dependsOn(checkLicenses)
     }
 
     void initialize(Project project) {
@@ -332,10 +334,10 @@ class LicenseToolsPlugin implements Plugin<Project> {
                     .groupBy { Project p -> "$p.group:$p.name:$p.version" }
 
             project.rootProject.subprojects.findAll { Project p -> !ignoredProjects.contains(p.name) }.each { Project subproject ->
-                runtimeDependencies.addAll(getProjectDependencies(subproject))
+                runtimeDependencies.addAll(getProjectDependencies(subproject, recursive))
             }
         } else {
-            runtimeDependencies.addAll(getProjectDependencies(project))
+            runtimeDependencies.addAll(getProjectDependencies(project, recursive))
         }
 
         runtimeDependencies = runtimeDependencies.flatten()
@@ -357,13 +359,23 @@ class LicenseToolsPlugin implements Plugin<Project> {
         return dependenciesToHandle
     }
 
-    static List<ResolvedArtifact> getProjectDependencies(Project project) {
+    static List<ResolvedArtifact> getProjectDependencies(Project project, boolean recursive) {
         project.configurations.all.findAll { Configuration c ->
             // compile|implementation|api, release(Compile|Implementation|Api), releaseProduction(Compile|Implementation|Api), and so on.
             c.name.matches(/^(?!releaseUnitTest)(?:release\w*)?([cC]ompile|[cC]ompileOnly|[iI]mplementation|[aA]pi)$/)
-        }.collect {
-            Configuration copyConfiguration = it.copyRecursive()
+        }.collect { Configuration c ->
+            Configuration copyConfiguration = c.copyRecursive()
             copyConfiguration.setCanBeResolved(true)
+
+            if(!recursive) {
+                // Drop all project dependencies from the artifact resolve
+                copyConfiguration.dependencies.all { Dependency a ->
+                    if(a instanceof ProjectDependency) {
+                        copyConfiguration.dependencies.remove(a)
+                    }
+                }
+            }
+
             copyConfiguration.resolvedConfiguration.lenientConfiguration.artifacts
         }.flatten() as List<ResolvedArtifact>
     }

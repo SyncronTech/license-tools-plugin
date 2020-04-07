@@ -22,7 +22,7 @@ class LicenseToolsPlugin implements Plugin<Project> {
 
     @Override
     void apply(Project project) {
-        project.extensions.add(LicenseToolsExtension.NAME, LicenseToolsExtension)
+        project.extensions.create(LicenseToolsExtension.NAME, LicenseToolsExtension, project)
 
         def checkLicenses = project.task('checkLicenses').doLast {
             initialize(project)
@@ -225,7 +225,7 @@ class LicenseToolsPlugin implements Plugin<Project> {
 
         assertEmptyLibraries(noLicenseLibraries)
 
-        project.mkdir(ext.outputHtml.getParentFile())
+        project.mkdir(ext.outputHtml.get().getParentFile())
         project.logger.info("render ${ext.outputHtml}")
         project.file(ext.outputHtml).write(Templates.wrapWithLayout(content))
     }
@@ -300,7 +300,7 @@ class LicenseToolsPlugin implements Plugin<Project> {
             }
         }
 
-        project.mkdir(ext.outputJson.getParentFile())
+        project.mkdir(ext.outputJson.get().getParentFile())
         project.logger.info("render ${ext.outputJson}")
         project.file(ext.outputJson).write(json.toString())
     }

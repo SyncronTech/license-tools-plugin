@@ -360,7 +360,7 @@ class LicenseToolsPlugin implements Plugin<Project> {
     }
 
     static List<ResolvedArtifact> getProjectDependencies(Project project, boolean recursive) {
-        project.configurations.all.findAll { Configuration c ->
+        def tmpList = project.configurations.all.findAll { Configuration c ->
             // compile|implementation|api, release(Compile|Implementation|Api), releaseProduction(Compile|Implementation|Api), and so on.
             c.name.matches(/^(?!releaseUnitTest)(?:release\w*)?([cC]ompile|[cC]ompileOnly|[iI]mplementation|[aA]pi)$/)
         }.collect { Configuration c ->
@@ -378,5 +378,32 @@ class LicenseToolsPlugin implements Plugin<Project> {
 
             copyConfiguration.resolvedConfiguration.lenientConfiguration.artifacts
         }.flatten() as List<ResolvedArtifact>
+
+        if(recursive) {
+            return tmpList
+        }
+
+        def fullList = project.configurations.all.findAll { Configuration c ->
+            // compile|implementation|api, release(Compile|Implementation|Api), releaseProduction(Compile|Implementation|Api), and so on.
+            c.name.matches(/^(?!releaseUnitTest)(?:release\w*)?([cC]ompile|[cC]ompileOnly|[iI]mplementation|[aA]pi)$/)
+        }.collect { Configuration c ->
+            Configuration copyConfiguration = c.copyRecursive()
+            copyConfiguration.setCanBeResolved(true)
+            copyConfiguration.resolvedConfiguration.lenientConfiguration.artifacts
+        }.flatten() as List<ResolvedArtifact>
+
+        List<ResolvedArtifact> output = []
+
+        fullList.each { ResolvedArtifact a ->
+            for(ResolvedArtifact b : tmpList) {
+                String debA = "$a.moduleVersion.id.group:$a.moduleVersion.id.name" as String
+                String debB = "$b.moduleVersion.id.group:$b.moduleVersion.id.name" as String
+                if(debA.equals(debB)) {
+                    output.add(a)
+                }
+            }
+        }
+
+        return output
     }
 }

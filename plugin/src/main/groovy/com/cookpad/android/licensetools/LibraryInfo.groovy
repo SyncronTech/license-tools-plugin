@@ -25,7 +25,7 @@ public class LibraryInfo implements Comparable<LibraryInfo> {
     boolean forceGenerate = false
 
     // from libraries.yml
-    public static LibraryInfo fromYaml(Object lib) {
+    public static LibraryInfo fromYaml(Map lib) {
         def libraryInfo = new LibraryInfo()
         libraryInfo.artifactId = ArtifactId.parse(lib.artifact as String)
         libraryInfo.filename = lib.filename as String
@@ -34,9 +34,9 @@ public class LibraryInfo implements Comparable<LibraryInfo> {
         if (lib.copyrightHolder) {
             libraryInfo.copyrightHolder = lib.copyrightHolder
         } else if (lib.copyrightHolders) {
-            libraryInfo.copyrightHolder = joinWords(lib.copyrightHolders)
+            libraryInfo.copyrightHolder = joinWords(lib.copyrightHolders as List<String>)
         } else if (lib.authors) {
-            libraryInfo.copyrightHolder = joinWords(lib.authors)
+            libraryInfo.copyrightHolder = joinWords(lib.authors as List<String>)
         } else if (lib.author) {
             libraryInfo.copyrightHolder = lib.author
         }
@@ -98,6 +98,7 @@ public class LibraryInfo implements Comparable<LibraryInfo> {
     }
 
     static String normalizeLicense(String name) {
+        //noinspection GroovyFallthrough
         switch (name) {
             case ~/(?i).*\bapache.*1\.0.*/:
                 return "apache1_0"

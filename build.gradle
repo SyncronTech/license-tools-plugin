@@ -5,7 +5,6 @@ apply from: project.file('metadata.gradle')
 ext {
     versionFile = project.file("VERSION")
     versionName = versionFile.readLines()[0].trim()
-    metadata.version = ext.versionName
 }
 
 buildscript {
@@ -29,7 +28,15 @@ allprojects {
 }
 
 wrapper {
-    gradleVersion '5.4.1'
+    gradleVersion '8.10'
+}
+
+group = metadata.groupId
+version = metadata.version
+
+subprojects { pp ->
+    pp.group = metadata.groupId
+    pp.version = metadata.version
 }
 
 def updateReadme(oldVersion, newVersion) {
@@ -38,38 +45,46 @@ def updateReadme(oldVersion, newVersion) {
     file("README.md").withWriter { it << result }
 }
 
-task('bumpMajor').doLast {
-    def oldVersion = versionName
-    def versionParts = versionName.split(/\./)
-    versionParts[0] = (versionParts[0] as int) + 1
-    def newVersion = "${versionParts[0]}.0.0"
-    versionFile.write(newVersion + "\n")
-    updateReadme(oldVersion, newVersion)
-    tasks.version.execute()
+tasks.register('bumpMajor') {
+    doLast {
+        def oldVersion = versionName
+        def versionParts = versionName.split(/\./)
+        versionParts[0] = (versionParts[0] as int) + 1
+        def newVersion = "${versionParts[0]}.0.0"
+        versionFile.write(newVersion + "\n")
+        updateReadme(oldVersion, newVersion)
+    }
+    finalizedBy('version')
 }
 
-task('bumpMinor').doLast {
-    def oldVersion = versionName
-    def versionParts = versionName.split(/\./)
-    versionParts[1] = (versionParts[1] as int) + 1
-    def newVersion = "${versionParts[0]}.${versionParts[1]}.0"
-    versionFile.write(newVersion + "\n")
-    updateReadme(oldVersion, newVersion)
-    tasks.version.execute()
+tasks.register('bumpMinor') {
+    doLast {
+        def oldVersion = versionName
+        def versionParts = versionName.split(/\./)
+        versionParts[1] = (versionParts[1] as int) + 1
+        def newVersion = "${versionParts[0]}.${versionParts[1]}.0"
+        versionFile.write(newVersion + "\n")
+        updateReadme(oldVersion, newVersion)
+    }
+    finalizedBy('version')
 }
 
-task('bumpPatch').doLast {
-    def oldVersion = versionName
-    def versionParts = versionName.split(/\./)
-    versionParts[2] = (versionParts[2] as int) + 1
-    def newVersion = "${versionParts[0]}.${versionParts[1]}.${versionParts[2]}"
-    versionFile.write(newVersion + "\n")
-    updateReadme(oldVersion, newVersion)
-    tasks.version.execute()
+tasks.register('bumpPatch') {
+    doLast {
+        def oldVersion = versionName
+        def versionParts = versionName.split(/\./)
+        versionParts[2] = (versionParts[2] as int) + 1
+        def newVersion = "${versionParts[0]}.${versionParts[1]}.${versionParts[2]}"
+        versionFile.write(newVersion + "\n")
+        updateReadme(oldVersion, newVersion)
+    }
+    finalizedBy('version')
 }
 
-task('version').doLast {
-    println "v" + versionFile.readLines()[0]
+tasks.register('version') {
+    doLast {
+        println "v" + versionFile.readLines()[0]
+    }
 }
 
 String shell(String command) {
@@ -85,18 +100,20 @@ String shell(String command) {
     return proc.in.text
 }
 
-task('releng').doLast {
-    def tag = "v" + versionName
-    println "Release engineering for ${tag}"
+tasks.register('releng') {
+    doLast {
+        def tag = "v" + versionName
+        println "Release engineering for ${tag}"
 
-    def changes = shell "git status -s"
-    if (changes.trim()) {
-        throw new RuntimeException("There are changes not commited yet.\n${changes}" as String)
+        def changes = shell "git status -s"
+        if (changes.trim()) {
+            throw new RuntimeException("There are changes not commited yet.\n${changes}" as String)
+        }
+
+        println "> git tag ${tag}"
+        shell "git tag ${tag}"
+        println "> git push origin ${tag}"
+        shell "git push origin ${tag}"
+        shell "git push origin master"
     }
-
-    println "> git tag ${tag}"
-    shell "git tag ${tag}"
-    println "> git push origin ${tag}"
-    shell "git push origin ${tag}"
-    shell "git push origin master"
 }

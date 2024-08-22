@@ -8,7 +8,7 @@ licenseTools {
 }
 
 dependencies {
-    testImplementation 'junit:junit:4.12'
+    testImplementation 'junit:junit:4.13.2'
     implementation project(':example-dep')
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation 'org.apache.commons:commons-csv:1.6'

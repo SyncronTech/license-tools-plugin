@@ -1,9 +1,10 @@
 package com.cookpad.android.licensetools
 
 import org.gradle.api.Project
-import org.gradle.api.provider.Provider
+import org.gradle.api.file.RegularFileProperty
 
 public class LicenseToolsExtension {
+
     public static String NAME = "licenseTools"
 
     public boolean throwException = true
@@ -12,24 +13,19 @@ public class LicenseToolsExtension {
 
     public List<String> disAllowed = []
 
-    public Provider<File> licensesYaml
+    public RegularFileProperty licensesYaml
 
-    public Provider<File> outputJson
+    public RegularFileProperty outputJson
 
-    public Provider<File> outputHtml
+    public RegularFileProperty outputHtml
 
     public Set<String> ignoredGroups = new HashSet<>()
 
     public Set<String> ignoredProjects = new HashSet<>()
 
     LicenseToolsExtension(Project project) {
-        this.licensesYaml = project.objects.property(File)
-        this.licensesYaml.set(new File("licenses.yml"))
-
-        this.outputJson = project.objects.property(File)
-        this.outputJson.set(new File("licenses.json"))
-
-        this.outputHtml = project.objects.property(File)
-        this.outputHtml.set(new File("licenses.html"))
+        this.licensesYaml = project.objects.fileProperty().convention(project.layout.projectDirectory.file("licenses.yml"))
+        this.outputJson = project.objects.fileProperty().convention(project.layout.projectDirectory.file("licenses.json"))
+        this.outputHtml = project.objects.fileProperty().convention(project.layout.projectDirectory.file("licenses.html"))
     }
 }

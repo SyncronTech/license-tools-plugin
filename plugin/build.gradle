@@ -1,58 +1,50 @@
 // This project's rootProject is ":buildSrc", so it should have a copy of build-script settings of the "/build.gradle"
 
-repositories {
-    mavenLocal()
-    jcenter()
-}
+apply plugin: 'groovy-gradle-plugin'
+apply plugin: 'maven-publish' // to add "plugin:install" to install it locally
 
 apply from: file('../metadata.gradle')
 
-ext {
-    versionFile = file("../VERSION")
-    versionName = versionFile.readLines()[0].trim()
-    metadata.version = ext.versionName
+repositories {
+    mavenLocal()
+    mavenCentral()
 }
 
-apply plugin: 'groovy'
-apply plugin: 'maven-publish' // to add "plugin:install" to install it locally
+gradlePlugin {
+    plugins {
+        licenseTools {
+            id = 'com.syncrontech.licensetools'
+            implementationClass = 'com.cookpad.android.licensetools.LicenseToolsPlugin'
+        }
+    }
+}
 
-targetCompatibility = JavaVersion.VERSION_1_8
-sourceCompatibility = JavaVersion.VERSION_1_8
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+}
 
 final metadata = ext.metadata
+metadata.versionFile = file('../VERSION')
 final ARTIFACT_ID = "license-tools-plugin"
 
 // for "plugin:install"
 group = metadata.groupId
-jar.baseName = ARTIFACT_ID
-version = metadata.version
+jar.archiveBaseName = ARTIFACT_ID
+version = metadata.version.get()
 
 if(project.hasProperty('pluginVersion')) {
     version project.property('pluginVersion')
 }
 
 dependencies {
-    compile gradleApi()
-//    compile localGroovy()
-    testCompile gradleTestKit()
-
-    compile 'org.yaml:snakeyaml:1.17'
-    compile 'org.apache.commons:commons-lang3:3.4'
-    testCompile 'junit:junit:4.12'
+    implementation gradleApi()
+    // implementation localGroovy()
+    testImplementation gradleTestKit()
+    implementation 'org.yaml:snakeyaml:2.2'
+    implementation 'org.apache.commons:commons-lang3:3.4'
+    testImplementation 'junit:junit:4.13.2'
 }
-
-
-//publish {
-//    artifactId = ARTIFACT_ID
-//    desc = 'A Gradle plugin to handle android application license notations'
-//
-//    userOrg = metadata.organization
-//    groupId = metadata.groupId
-//    publishVersion = metadata.version
-//    website = metadata.website
-//    repository = metadata.repository
-//    licences = metadata.licences
-//}
 
 if(file('../publishing.gradle').exists()) {
     apply from: file('../publishing.gradle')

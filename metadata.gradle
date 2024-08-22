@@ -2,6 +2,10 @@ ext {
     metadata = [
             organization: 'syncrontech',
             groupId     : 'com.syncrontech.licensetools',
+            versionFile : rootProject.file('VERSION'),
+            version     : provider {
+                ext.metadata.versionFile.readLines()[0].trim()
+            },
             website     : 'https://github.com/SyncronTech/license-tools-plugin',
             repository  : 'https://github.com/SyncronTech/license-tools-plugin.git',
             licences    : ['Apache-2.0']

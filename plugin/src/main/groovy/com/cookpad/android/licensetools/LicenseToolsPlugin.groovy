@@ -1,7 +1,6 @@
 package com.cookpad.android.licensetools
 
 import groovy.json.JsonBuilder
-import groovy.util.slurpersupport.GPathResult
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -13,6 +12,7 @@ import org.gradle.language.base.plugins.LifecycleBasePlugin
 import org.xml.sax.helpers.DefaultHandler
 import org.yaml.snakeyaml.Yaml
 
+@SuppressWarnings('unused')
 class LicenseToolsPlugin implements Plugin<Project> {
 
     final yaml = new Yaml()
@@ -154,7 +154,7 @@ class LicenseToolsPlugin implements Plugin<Project> {
                 libraryInfo.artifactId = ArtifactId.parse(dependencyDesc)
                 libraryInfo.filename = d.file
                 dependencyLicenses.add(libraryInfo)
-            } catch (IllegalArgumentException e) {
+            } catch (IllegalArgumentException ignored) {
                 project.logger.info("Unsupport dependency: $dependencyDesc")
                 return
             }
@@ -175,10 +175,9 @@ class LicenseToolsPlugin implements Plugin<Project> {
                 return
             }
 
-            XmlSlurper slurper = new XmlSlurper(true, false)
+            def slurper = new groovy.xml.XmlSlurper(true, false)
             slurper.setErrorHandler(new DefaultHandler())
-            GPathResult xml = slurper.parse(pStream)
-
+            def xml = slurper.parse(pStream)
             libraryInfo.libraryName = xml.name.text()
             libraryInfo.url = xml.url.text()
 
@@ -300,7 +299,7 @@ class LicenseToolsPlugin implements Plugin<Project> {
             }
         }
 
-        project.mkdir(ext.outputJson.get().getParentFile())
+        project.mkdir(ext.outputJson.get().asFile.getParentFile())
         project.logger.info("render ${ext.outputJson}")
         project.file(ext.outputJson).write(json.toString())
     }

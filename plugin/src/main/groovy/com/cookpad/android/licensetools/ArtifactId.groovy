@@ -29,7 +29,7 @@ public class ArtifactId implements Comparable<ArtifactId> {
         return matchesWithWildcard(group, artifactId.group)  && matchesWithWildcard(name, artifactId.name)  && matchesWithWildcard(version, artifactId.version);
     }
 
-    private boolean matchesWithWildcard(String a, String b) {
+    private static boolean matchesWithWildcard(String a, String b) {
         return a.equals("+") || b.equals("+") || a.equals(b);
     }
 

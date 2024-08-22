@@ -52,11 +52,11 @@ public class Templates {
         if (templateFileUrl == null) {
             throw new FileNotFoundException("File not found: $filename")
         }
-        templateFileUrl = new URL(templateFileUrl.toString())
+        templateFileUrl = new URI(templateFileUrl.toString()).toURL()
 
         try {
             return templateFileUrl.openStream().getText("UTF-8")
-        } catch (FileNotFoundException e) {
+        } catch (FileNotFoundException ignored) {
             // fallback to read JAR directly
             URI jarFile = (templateFileUrl.openConnection() as JarURLConnection).jarFileURL.toURI()
             ZipFile zip
